@@ -98,5 +98,20 @@ export function useChat(pageContext?: PageContext) {
     [messages, buildSystemPrompt]
   );
 
-  return { messages, isLoading, sendMessage };
+  const clearMessages = useCallback(() => {
+    setMessages([
+      {
+        id: Date.now().toString(),
+        role: 'assistant',
+        content: '对话已清空。有什么我可以帮你的吗？',
+        timestamp: Date.now(),
+      },
+    ]);
+  }, []);
+
+  const deleteMessage = useCallback((id: string) => {
+    setMessages((prev) => prev.filter((m) => m.id !== id));
+  }, []);
+
+  return { messages, isLoading, sendMessage, clearMessages, deleteMessage };
 }

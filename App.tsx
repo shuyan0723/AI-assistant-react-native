@@ -2,6 +2,7 @@ import React, { useState, useCallback, useMemo } from 'react';
 import { SafeAreaView, KeyboardAvoidingView, Platform, View, StyleSheet } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { TabBar, TabType } from './src/components/Layout/TabBar';
+import { Header } from './src/components/Layout/Header';
 import { MessageList } from './src/components/Chat/MessageList';
 import { MessageInput } from './src/components/Chat/MessageInput';
 import { DocumentEditor } from './src/components/Editor/DocumentEditor';
@@ -33,7 +34,7 @@ export default function App() {
     return context;
   }, [activeTab, documentContent, todos]);
 
-  const { messages, isLoading, sendMessage } = useChat(pageContext);
+  const { messages, isLoading, sendMessage, clearMessages, deleteMessage } = useChat(pageContext);
 
   const handleSendMessage = useCallback(
     (content: string) => {
@@ -42,12 +43,24 @@ export default function App() {
     [sendMessage]
   );
 
+  const getHeaderTitle = () => {
+    switch (activeTab) {
+      case 'chat': return 'AI 助手';
+      case 'document': return '文档编辑';
+      case 'todo': return '待办事项';
+    }
+  };
+
   const renderContent = () => {
     switch (activeTab) {
       case 'chat':
         return (
           <View style={styles.chatContainer}>
-            <MessageList messages={messages} />
+            <MessageList
+              messages={messages}
+              onDeleteMessage={deleteMessage}
+              isLoading={isLoading}
+            />
           </View>
         );
       case 'document':
@@ -75,6 +88,12 @@ export default function App() {
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
       >
+        <Header
+          title={getHeaderTitle()}
+          onClear={activeTab === 'chat' ? clearMessages : undefined}
+          showClear={activeTab === 'chat' && messages.length > 1}
+        />
+
         <TabBar activeTab={activeTab} onTabChange={setActiveTab} />
 
         <View style={styles.content}>{renderContent()}</View>
