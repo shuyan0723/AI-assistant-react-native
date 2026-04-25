@@ -1,5 +1,5 @@
-const API_KEY = 'sk-ef1eb3b829ef44ab9a68f8de58ebc685';
-const BASE_URL = 'https://api.deepseek.com';
+const API_KEY = process.env.EXPO_PUBLIC_DEEPSEEK_API_KEY || '';
+const BASE_URL = process.env.EXPO_PUBLIC_DEEPSEEK_BASE_URL || 'https://api.deepseek.com';
 
 export interface ChatMessage {
   role: 'system' | 'user' | 'assistant';
