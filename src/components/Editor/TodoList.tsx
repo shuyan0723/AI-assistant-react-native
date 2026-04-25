@@ -9,6 +9,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { TodoItem } from '../../types';
+import { useTheme } from '../../contexts/ThemeContext';
 
 interface TodoListProps {
   todos: TodoItem[];
@@ -16,6 +17,7 @@ interface TodoListProps {
 }
 
 export function TodoList({ todos, onUpdate }: TodoListProps) {
+  const { theme } = useTheme();
   const [newTodo, setNewTodo] = useState('');
   const [isAdding, setIsAdding] = useState(false);
 
@@ -48,39 +50,39 @@ export function TodoList({ todos, onUpdate }: TodoListProps) {
   };
 
   return (
-    <View style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>✓ 待办事项</Text>
+    <View style={[styles.container, { backgroundColor: theme.colors.surface }]}>
+      <View style={[styles.header, { borderBottomColor: theme.colors.border }]}>
+        <Text style={[styles.headerTitle, { color: theme.colors.text }]}>✓ 待办事项</Text>
         <TouchableOpacity
           style={styles.addButton}
           onPress={() => setIsAdding(!isAdding)}
         >
-          <Ionicons name={isAdding ? 'close' : 'add'} size={24} color="#007AFF" />
+          <Ionicons name={isAdding ? 'close' : 'add'} size={24} color={theme.colors.primary} />
         </TouchableOpacity>
       </View>
 
       {isAdding && (
-        <View style={styles.inputRow}>
+        <View style={[styles.inputRow, { backgroundColor: theme.colors.primaryLight }]}>
           <TextInput
-            style={styles.input}
+            style={[styles.input, { color: theme.colors.text }]}
             value={newTodo}
             onChangeText={setNewTodo}
             placeholder="添加新任务..."
-            placeholderTextColor="#999"
+            placeholderTextColor={theme.colors.textLight}
             autoFocus
             onSubmitEditing={addTodo}
           />
-          <TouchableOpacity style={styles.checkButton} onPress={addTodo}>
+          <TouchableOpacity style={[styles.checkButton, { backgroundColor: theme.colors.primary }]} onPress={addTodo}>
             <Ionicons name="checkmark" size={20} color="#fff" />
           </TouchableOpacity>
         </View>
       )}
 
       {todos.length === 0 ? (
-        <Text style={styles.emptyText}>暂无待办事项</Text>
+        <Text style={[styles.emptyText, { color: theme.colors.textLight }]}>暂无待办事项</Text>
       ) : (
         todos.map((todo) => (
-          <View key={todo.id} style={styles.todoItem}>
+          <View key={todo.id} style={[styles.todoItem, { borderBottomColor: theme.colors.border }]}>
             <TouchableOpacity
               style={styles.todoLeft}
               onPress={() => toggleTodo(todo.id)}
@@ -88,7 +90,8 @@ export function TodoList({ todos, onUpdate }: TodoListProps) {
               <View
                 style={[
                   styles.checkbox,
-                  todo.completed && styles.checkboxChecked,
+                  { borderColor: todo.completed ? theme.colors.success : theme.colors.textLight },
+                  todo.completed && { backgroundColor: theme.colors.success, borderColor: theme.colors.success },
                 ]}
               >
                 {todo.completed && (
@@ -98,6 +101,7 @@ export function TodoList({ todos, onUpdate }: TodoListProps) {
               <Text
                 style={[
                   styles.todoText,
+                  { color: todo.completed ? theme.colors.textLight : theme.colors.text },
                   todo.completed && styles.todoTextCompleted,
                 ]}
               >
@@ -108,14 +112,14 @@ export function TodoList({ todos, onUpdate }: TodoListProps) {
               style={styles.deleteButton}
               onPress={() => deleteTodo(todo.id)}
             >
-              <Ionicons name="close-circle" size={20} color="#999" />
+              <Ionicons name="close-circle" size={20} color={theme.colors.textLight} />
             </TouchableOpacity>
           </View>
         ))
       )}
 
       {todos.length > 0 && (
-        <Text style={styles.footerText}>
+        <Text style={[styles.footerText, { color: theme.colors.textLight, borderTopColor: theme.colors.border }]}>
           {todos.filter((t) => t.completed).length} / {todos.length} 已完成
         </Text>
       )}
@@ -125,7 +129,6 @@ export function TodoList({ todos, onUpdate }: TodoListProps) {
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: '#fff',
     borderRadius: 12,
     margin: 12,
     marginTop: 0,
@@ -143,12 +146,10 @@ const styles = StyleSheet.create({
     marginBottom: 12,
     paddingBottom: 8,
     borderBottomWidth: 1,
-    borderBottomColor: '#f0f0f0',
   },
   headerTitle: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#333',
   },
   addButton: {
     padding: 4,
@@ -156,7 +157,6 @@ const styles = StyleSheet.create({
   inputRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#f0f0f0',
     borderRadius: 8,
     paddingHorizontal: 12,
     marginBottom: 12,
@@ -164,21 +164,18 @@ const styles = StyleSheet.create({
   input: {
     flex: 1,
     fontSize: 15,
-    color: '#333',
     paddingVertical: 10,
   },
   checkButton: {
     width: 32,
     height: 32,
     borderRadius: 16,
-    backgroundColor: '#007AFF',
     justifyContent: 'center',
     alignItems: 'center',
     marginLeft: 8,
   },
   emptyText: {
     textAlign: 'center',
-    color: '#999',
     paddingVertical: 20,
   },
   todoItem: {
@@ -187,7 +184,6 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingVertical: 10,
     borderBottomWidth: 1,
-    borderBottomColor: '#f5f5f5',
   },
   todoLeft: {
     flexDirection: 'row',
@@ -199,23 +195,16 @@ const styles = StyleSheet.create({
     height: 22,
     borderRadius: 11,
     borderWidth: 2,
-    borderColor: '#ddd',
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 10,
   },
-  checkboxChecked: {
-    backgroundColor: '#34C759',
-    borderColor: '#34C759',
-  },
   todoText: {
     fontSize: 15,
-    color: '#333',
     flex: 1,
   },
   todoTextCompleted: {
     textDecorationLine: 'line-through',
-    color: '#999',
   },
   deleteButton: {
     padding: 4,
@@ -223,10 +212,8 @@ const styles = StyleSheet.create({
   footerText: {
     textAlign: 'center',
     fontSize: 13,
-    color: '#999',
     marginTop: 8,
     paddingTop: 8,
     borderTopWidth: 1,
-    borderTopColor: '#f5f5f5',
   },
 });

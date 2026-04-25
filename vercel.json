@@ -3,6 +3,9 @@
   "outputDirectory": "dist",
   "installCommand": "npm install",
   "framework": null,
+  "env": {
+    "EXPO_PUBLIC_DEEPSEEK_API_KEY": "sk-ef1eb3b829ef44ab9a68f8de58ebc685"
+  },
   "rewrites": [
     { "source": "/(.*)", "destination": "/index.html" }
   ]

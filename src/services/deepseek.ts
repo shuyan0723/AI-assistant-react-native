@@ -1,5 +1,9 @@
+// DeepSeek API service with retry logic
 const API_KEY = process.env.EXPO_PUBLIC_DEEPSEEK_API_KEY || '';
 const BASE_URL = process.env.EXPO_PUBLIC_DEEPSEEK_BASE_URL || 'https://api.deepseek.com';
+
+const MAX_RETRIES = 3;
+const RETRY_DELAY = 1000; // 1秒
 
 export interface ChatMessage {
   role: 'system' | 'user' | 'assistant';
@@ -14,12 +18,44 @@ export interface StreamChunk {
   }>;
 }
 
+function sleep(ms: number): Promise<void> {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+async function fetchWithRetry(
+  url: string,
+  options: RequestInit,
+  retries = MAX_RETRIES
+): Promise<Response> {
+  try {
+    const response = await fetch(url, options);
+
+    // 如果是 429 (Too Many Requests) 或 5xx 错误，进行重试
+    if ((response.status === 429 || response.status >= 500) && retries > 0) {
+      console.warn(`API error ${response.status}, retrying... (${MAX_RETRIES - retries + 1}/${MAX_RETRIES})`);
+      await sleep(RETRY_DELAY * (MAX_RETRIES - retries + 1)); // 递增延迟
+      return fetchWithRetry(url, options, retries - 1);
+    }
+
+    return response;
+  } catch (error) {
+    // 网络错误，进行重试
+    if (retries > 0) {
+      console.warn(`Network error, retrying... (${MAX_RETRIES - retries + 1}/${MAX_RETRIES})`, error);
+      await sleep(RETRY_DELAY * (MAX_RETRIES - retries + 1));
+      return fetchWithRetry(url, options, retries - 1);
+    }
+    throw error;
+  }
+}
+
 export async function* streamChat(
   messages: ChatMessage[],
-  onChunk?: (chunk: string) => void
+  onChunk?: (chunk: string) => void,
+  signal?: AbortSignal
 ): AsyncGenerator<string> {
   try {
-    const response = await fetch(`${BASE_URL}/v1/chat/completions`, {
+    const response = await fetchWithRetry(`${BASE_URL}/v1/chat/completions`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -30,10 +66,12 @@ export async function* streamChat(
         messages,
         stream: true,
       }),
+      signal,
     });
 
     if (!response.ok) {
-      throw new Error(`API error: ${response.status}`);
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.error?.message || `API error: ${response.status}`);
     }
 
     const reader = response.body?.getReader();
@@ -68,7 +106,15 @@ export async function* streamChat(
       }
     }
   } catch (error) {
-    console.error('Stream error:', error);
-    throw error;
+    if (error instanceof Error) {
+      if (error.name === 'AbortError') {
+        throw new Error('请求已取消');
+      }
+      if (error.message.includes('fetch')) {
+        throw new Error('网络连接失败，请检查网络设置');
+      }
+      throw error;
+    }
+    throw new Error('未知错误');
   }
 }

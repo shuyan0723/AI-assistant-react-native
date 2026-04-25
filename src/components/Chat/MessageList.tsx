@@ -3,6 +3,7 @@ import { View, Text, ScrollView, StyleSheet, TouchableOpacity, Alert } from 'rea
 import Markdown from 'react-native-markdown-display';
 import { Message } from '../../types';
 import { TypingIndicator } from './TypingIndicator';
+import { useTheme } from '../../contexts/ThemeContext';
 
 interface MessageListProps {
   messages: Message[];
@@ -11,8 +12,9 @@ interface MessageListProps {
 }
 
 export function MessageList({ messages, onDeleteMessage, isLoading }: MessageListProps) {
+  const { theme } = useTheme();
+
   const handleCopy = (content: string) => {
-    // Web 平台使用 Clipboard API
     if (typeof navigator !== 'undefined' && navigator.clipboard) {
       navigator.clipboard.writeText(content);
       Alert.alert('成功', '已复制到剪贴板');
@@ -34,26 +36,21 @@ export function MessageList({ messages, onDeleteMessage, isLoading }: MessageLis
   const renderMessageContent = (message: Message) => {
     if (message.role === 'user') {
       return (
-        <Text
-          style={[
-            styles.messageText,
-            styles.userText,
-          ]}
-        >
+        <Text style={[styles.messageText, { color: '#fff' }]}>
           {message.content}
         </Text>
       );
     }
 
     return (
-      <Markdown style={markdownStyles}>
+      <Markdown style={getMarkdownStyles(theme)}>
         {message.content}
       </Markdown>
     );
   };
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
+    <ScrollView style={[styles.container, { backgroundColor: theme.colors.background }]} contentContainerStyle={styles.content}>
       {messages.map((message) => (
         <View
           key={message.id}
@@ -65,7 +62,9 @@ export function MessageList({ messages, onDeleteMessage, isLoading }: MessageLis
           <TouchableOpacity
             style={[
               styles.messageBubble,
-              message.role === 'user' ? styles.userBubble : styles.assistantBubble,
+              message.role === 'user'
+                ? [styles.userBubble, { backgroundColor: theme.colors.userBubble }]
+                : [styles.assistantBubble, { backgroundColor: theme.colors.assistantBubble, borderColor: theme.colors.border }],
             ]}
             onLongPress={() => handleLongPress(message)}
             delayLongPress={500}
@@ -82,7 +81,7 @@ export function MessageList({ messages, onDeleteMessage, isLoading }: MessageLis
       ))}
       {isLoading && (
         <View style={styles.assistantRow}>
-          <View style={[styles.messageBubble, styles.assistantBubble, styles.typingBubble]}>
+          <View style={[styles.messageBubble, styles.assistantBubble, styles.typingBubble, { backgroundColor: theme.colors.assistantBubble, borderColor: theme.colors.border }]}>
             <TypingIndicator />
           </View>
         </View>
@@ -94,7 +93,6 @@ export function MessageList({ messages, onDeleteMessage, isLoading }: MessageLis
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
   },
   content: {
     padding: 12,
@@ -116,21 +114,15 @@ const styles = StyleSheet.create({
     borderRadius: 16,
   },
   userBubble: {
-    backgroundColor: '#007AFF',
     borderBottomRightRadius: 4,
   },
   assistantBubble: {
-    backgroundColor: '#fff',
     borderBottomLeftRadius: 4,
     borderWidth: 1,
-    borderColor: '#e0e0e0',
   },
   messageText: {
     fontSize: 15,
     lineHeight: 20,
-  },
-  userText: {
-    color: '#fff',
   },
   timestamp: {
     fontSize: 11,
@@ -143,43 +135,43 @@ const styles = StyleSheet.create({
   },
 });
 
-const markdownStyles = StyleSheet.create({
+const getMarkdownStyles = (theme: any) => StyleSheet.create({
   body: {
     fontSize: 15,
     lineHeight: 22,
-    color: '#333',
+    color: theme.colors.text,
   },
   heading1: {
     fontSize: 20,
     fontWeight: '700',
     marginBottom: 8,
-    color: '#222',
+    color: theme.colors.text,
   },
   heading2: {
     fontSize: 18,
     fontWeight: '600',
     marginBottom: 6,
-    color: '#222',
+    color: theme.colors.text,
   },
   heading3: {
     fontSize: 16,
     fontWeight: '600',
     marginBottom: 4,
-    color: '#222',
+    color: theme.colors.text,
   },
   strong: {
     fontWeight: '700',
-    color: '#000',
+    color: theme.colors.text,
   },
   em: {
     fontStyle: 'italic',
   },
   link: {
-    color: '#007AFF',
+    color: theme.colors.primary,
     textDecorationLine: 'underline',
   },
   code_inline: {
-    backgroundColor: '#f0f0f0',
+    backgroundColor: theme.colors.primaryLight,
     color: '#e83e8c',
     paddingHorizontal: 4,
     paddingVertical: 2,
@@ -188,8 +180,8 @@ const markdownStyles = StyleSheet.create({
     fontSize: 13,
   },
   code_block: {
-    backgroundColor: '#1e1e1e',
-    color: '#d4d4d4',
+    backgroundColor: theme.colors.codeBlock,
+    color: theme.colors.codeText,
     padding: 12,
     borderRadius: 8,
     marginVertical: 8,
@@ -198,8 +190,8 @@ const markdownStyles = StyleSheet.create({
     overflow: 'hidden',
   },
   fence: {
-    backgroundColor: '#1e1e1e',
-    color: '#d4d4d4',
+    backgroundColor: theme.colors.codeBlock,
+    color: theme.colors.codeText,
     padding: 12,
     borderRadius: 8,
     marginVertical: 8,
@@ -209,9 +201,9 @@ const markdownStyles = StyleSheet.create({
   },
   blockquote: {
     borderLeftWidth: 4,
-    borderLeftColor: '#007AFF',
+    borderLeftColor: theme.colors.primary,
     paddingLeft: 12,
-    color: '#666',
+    color: theme.colors.textSecondary,
     fontStyle: 'italic',
     marginVertical: 4,
   },
@@ -224,13 +216,13 @@ const markdownStyles = StyleSheet.create({
     marginVertical: 4,
   },
   hr: {
-    backgroundColor: '#e0e0e0',
+    backgroundColor: theme.colors.border,
     height: 1,
     marginVertical: 12,
   },
   table_container: {
     borderWidth: 1,
-    borderColor: '#e0e0e0',
+    borderColor: theme.colors.border,
     borderRadius: 8,
     marginVertical: 8,
     overflow: 'hidden',
@@ -238,16 +230,16 @@ const markdownStyles = StyleSheet.create({
   table_row: {
     flexDirection: 'row',
     borderBottomWidth: 1,
-    borderBottomColor: '#e0e0e0',
+    borderBottomColor: theme.colors.border,
   },
   table_header: {
-    backgroundColor: '#f5f5f5',
+    backgroundColor: theme.colors.primaryLight,
     fontWeight: '600',
   },
   table_cell: {
     flex: 1,
     padding: 8,
     borderRightWidth: 1,
-    borderRightColor: '#e0e0e0',
+    borderRightColor: theme.colors.border,
   },
 });

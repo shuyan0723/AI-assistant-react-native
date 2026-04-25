@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, TextInput, StyleSheet, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { DocumentContent } from '../../types';
+import { useTheme } from '../../contexts/ThemeContext';
 
 interface DocumentEditorProps {
   content: DocumentContent;
@@ -9,6 +10,7 @@ interface DocumentEditorProps {
 }
 
 export function DocumentEditor({ content, onUpdate }: DocumentEditorProps) {
+  const { theme } = useTheme();
   const [isEditing, setIsEditing] = useState(false);
   const [title, setTitle] = useState(content.title);
   const [body, setBody] = useState(content.content);
@@ -19,9 +21,9 @@ export function DocumentEditor({ content, onUpdate }: DocumentEditorProps) {
   };
 
   return (
-    <View style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>📝 文档编辑器</Text>
+    <View style={[styles.container, { backgroundColor: theme.colors.surface }]}>
+      <View style={[styles.header, { borderBottomColor: theme.colors.border }]}>
+        <Text style={[styles.headerTitle, { color: theme.colors.text }]}>📝 文档编辑器</Text>
         <TouchableOpacity
           style={styles.editButton}
           onPress={() => (isEditing ? handleSave() : setIsEditing(true))}
@@ -29,7 +31,7 @@ export function DocumentEditor({ content, onUpdate }: DocumentEditorProps) {
           <Ionicons
             name={isEditing ? 'checkmark' : 'create-outline'}
             size={20}
-            color="#007AFF"
+            color={theme.colors.primary}
           />
         </TouchableOpacity>
       </View>
@@ -37,26 +39,26 @@ export function DocumentEditor({ content, onUpdate }: DocumentEditorProps) {
       {isEditing ? (
         <View style={styles.editContainer}>
           <TextInput
-            style={styles.titleInput}
+            style={[styles.titleInput, { color: theme.colors.text, borderBottomColor: theme.colors.border }]}
             value={title}
             onChangeText={setTitle}
             placeholder="文档标题"
-            placeholderTextColor="#999"
+            placeholderTextColor={theme.colors.textLight}
           />
           <TextInput
-            style={styles.bodyInput}
+            style={[styles.bodyInput, { color: theme.colors.text }]}
             value={body}
             onChangeText={setBody}
             placeholder="开始输入内容..."
-            placeholderTextColor="#999"
+            placeholderTextColor={theme.colors.textLight}
             multiline
             textAlignVertical="top"
           />
         </View>
       ) : (
         <View style={styles.viewContainer}>
-          <Text style={styles.viewTitle}>{content.title}</Text>
-          <Text style={styles.viewContent}>{content.content}</Text>
+          <Text style={[styles.viewTitle, { color: theme.colors.text }]}>{content.title}</Text>
+          <Text style={[styles.viewContent, { color: theme.colors.textSecondary }]}>{content.content}</Text>
         </View>
       )}
     </View>
@@ -65,7 +67,6 @@ export function DocumentEditor({ content, onUpdate }: DocumentEditorProps) {
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: '#fff',
     borderRadius: 12,
     margin: 12,
     padding: 16,
@@ -82,12 +83,10 @@ const styles = StyleSheet.create({
     marginBottom: 12,
     paddingBottom: 8,
     borderBottomWidth: 1,
-    borderBottomColor: '#f0f0f0',
   },
   headerTitle: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#333',
   },
   editButton: {
     padding: 4,
@@ -98,14 +97,11 @@ const styles = StyleSheet.create({
   titleInput: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#333',
     borderBottomWidth: 1,
-    borderBottomColor: '#e0e0e0',
     paddingBottom: 8,
   },
   bodyInput: {
     fontSize: 15,
-    color: '#333',
     minHeight: 150,
     lineHeight: 22,
   },
@@ -115,11 +111,9 @@ const styles = StyleSheet.create({
   viewTitle: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#333',
   },
   viewContent: {
     fontSize: 15,
-    color: '#666',
     lineHeight: 22,
   },
 });

@@ -1,7 +1,10 @@
 import React from 'react';
 import { View, StyleSheet, Animated } from 'react-native';
+import { useTheme } from '../../contexts/ThemeContext';
 
 export function TypingIndicator() {
+  const { theme } = useTheme();
+
   const dots = [0, 1, 2].map((index) => {
     const scale = new Animated.Value(0.8);
 
@@ -31,6 +34,7 @@ export function TypingIndicator() {
         style={[
           styles.dot,
           {
+            backgroundColor: theme.colors.primary,
             transform: [{ scale }],
             opacity: scale.interpolate({
               inputRange: [0.8, 1.2],
@@ -55,7 +59,6 @@ const styles = StyleSheet.create({
     width: 8,
     height: 8,
     borderRadius: 4,
-    backgroundColor: '#007AFF',
     marginHorizontal: 4,
   },
 });

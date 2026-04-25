@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { View, TextInput, TouchableOpacity, Text, StyleSheet, Platform } from 'react-native';
+import { View, TextInput, TouchableOpacity, StyleSheet, Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useTheme } from '../../contexts/ThemeContext';
 
 interface MessageInputProps {
   onSend: (message: string) => void;
@@ -8,6 +9,7 @@ interface MessageInputProps {
 }
 
 export function MessageInput({ onSend, disabled }: MessageInputProps) {
+  const { theme } = useTheme();
   const [text, setText] = useState('');
 
   const handleSend = () => {
@@ -18,14 +20,14 @@ export function MessageInput({ onSend, disabled }: MessageInputProps) {
   };
 
   return (
-    <View style={styles.container}>
-      <View style={styles.inputContainer}>
+    <View style={[styles.container, { backgroundColor: theme.colors.surface, borderTopColor: theme.colors.border }]}>
+      <View style={[styles.inputContainer, { backgroundColor: theme.colors.primaryLight }]}>
         <TextInput
-          style={styles.input}
+          style={[styles.input, { color: theme.colors.text }]}
           value={text}
           onChangeText={setText}
           placeholder="输入消息..."
-          placeholderTextColor="#999"
+          placeholderTextColor={theme.colors.textLight}
           multiline
           maxLength={500}
           onSubmitEditing={handleSend}
@@ -33,14 +35,17 @@ export function MessageInput({ onSend, disabled }: MessageInputProps) {
           editable={!disabled}
         />
         <TouchableOpacity
-          style={[styles.sendButton, (!text.trim() || disabled) && styles.sendButtonDisabled]}
+          style={[
+            styles.sendButton,
+            { backgroundColor: text.trim() && !disabled ? theme.colors.primary : theme.colors.textLight },
+          ]}
           onPress={handleSend}
           disabled={!text.trim() || disabled}
         >
           <Ionicons
             name="send"
             size={20}
-            color={text.trim() && !disabled ? '#fff' : '#999'}
+            color={text.trim() && !disabled ? '#fff' : '#666'}
           />
         </TouchableOpacity>
       </View>
@@ -50,11 +55,9 @@ export function MessageInput({ onSend, disabled }: MessageInputProps) {
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: '#fff',
-    borderTopWidth: 1,
-    borderTopColor: '#e0e0e0',
     paddingHorizontal: 12,
     paddingVertical: 8,
+    borderTopWidth: 1,
     ...Platform.select({
       ios: {
         paddingBottom: 24,
@@ -64,7 +67,6 @@ const styles = StyleSheet.create({
   inputContainer: {
     flexDirection: 'row',
     alignItems: 'flex-end',
-    backgroundColor: '#f0f0f0',
     borderRadius: 20,
     paddingHorizontal: 12,
     paddingVertical: 8,
@@ -72,7 +74,6 @@ const styles = StyleSheet.create({
   input: {
     flex: 1,
     fontSize: 15,
-    color: '#333',
     maxHeight: 100,
     marginRight: 8,
   },
@@ -80,11 +81,7 @@ const styles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: '#007AFF',
     justifyContent: 'center',
     alignItems: 'center',
-  },
-  sendButtonDisabled: {
-    backgroundColor: '#ccc',
   },
 });
