@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useRef, useEffect } from 'react';
 import { View, Text, ScrollView, StyleSheet, TouchableOpacity, Alert } from 'react-native';
 import Markdown from 'react-native-markdown-display';
 import { Message } from '../../types';
@@ -13,6 +13,17 @@ interface MessageListProps {
 
 export function MessageList({ messages, onDeleteMessage, isLoading }: MessageListProps) {
   const { theme } = useTheme();
+  const scrollViewRef = useRef<ScrollView>(null);
+
+  // 自动滚动到底部
+  useEffect(() => {
+    // 使用 setTimeout 确保内容渲染完成后再滚动
+    const timeoutId = setTimeout(() => {
+      scrollViewRef.current?.scrollToEnd({ animated: true });
+    }, 100);
+
+    return () => clearTimeout(timeoutId);
+  }, [messages, isLoading]);
 
   const handleCopy = (content: string) => {
     if (typeof navigator !== 'undefined' && navigator.clipboard) {
@@ -50,7 +61,12 @@ export function MessageList({ messages, onDeleteMessage, isLoading }: MessageLis
   };
 
   return (
-    <ScrollView style={[styles.container, { backgroundColor: theme.colors.background }]} contentContainerStyle={styles.content}>
+    <ScrollView
+      ref={scrollViewRef}
+      style={[styles.container, { backgroundColor: theme.colors.background }]}
+      contentContainerStyle={styles.content}
+      onContentSizeChange={() => scrollViewRef.current?.scrollToEnd({ animated: true })}
+    >
       {messages.map((message) => (
         <View
           key={message.id}
